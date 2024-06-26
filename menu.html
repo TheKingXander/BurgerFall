@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú Principal</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: url('imagen.gif') no-repeat center center;
+            background-size: cover; /* Ajustar la imagen de fondo */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente blanco */
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .logo {
+            max-width: 50%;
+            height: auto;
+            margin-bottom: -20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <img src="Logo.png" alt="Logo" class="logo">
+    <div class="container">
+        <div>
+            <a href="juego.html" class="btn">Juego Clásico</a><br>
+            <a href="explocion.html" class="btn">Modo Explosión</a><br>
+            <a href="#" class="btn">Tiempo a Muerte</a><br>
+            <a href="#" class="btn">Opciones</a><br>
+        </div>
+    </div>
+</body>
+</html>

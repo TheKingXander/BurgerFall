@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lluvia de Hamburguesas - Modo Explosión</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('fondo.png') no-repeat center center;
+            background-size: cover; /* Ajustar la imagen de fondo */
+        }
+
+        #game {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        #player {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px; /* Aumentar tamaño */
+            height: 70px; /* Aumentar tamaño */
+            background: url('p1.png') no-repeat center center;
+            background-size: contain;
+            transition: transform 0.2s; /* Transición suave para volteo */
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .burger {
+            position: absolute;
+            width: 70px; /* Aumentar tamaño */
+            height: 70px; /* Aumentar tamaño */
+            background: url('bomba.gif') no-repeat center center;
+            background-size: contain;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* Fondo semi-transparente */
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 999;
+        }
+
+        .overlay-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .explosion {
+            position: absolute;
+            width: 150px; /* Tamaño de la explosión */
+            height: 150px; /* Tamaño de la explosión */
+            background: url('explode.gif') no-repeat center center;
+            background-size: cover;
+            pointer-events: none; /* Evitar que la explosión capture eventos */
+            display: none; /* Ocultar inicialmente */
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <div id="player"></div>
+        <div id="score">Tiempo: 0</div>
+    </div>
+
+    <div class="overlay" id="gameOverOverlay">
+        <div class="overlay-content">
+            <h2>Has sobrevivido <span id="survivalTime">0</span> segundos</h2>
+            <button class="btn" onclick="restartGame()">Volver a Jugar</button>
+            <a class="btn" href="menu.html">Ir al Menú</a>
+        </div>
+    </div>
+
+    <div class="explosion" id="explosion"></div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const game = document.getElementById("game");
+            const player = document.getElementById("player");
+            const score = document.getElementById("score");
+            const overlay = document.getElementById("gameOverOverlay");
+            const explosion = document.getElementById("explosion");
+            const survivalTimeDisplay = document.getElementById("survivalTime");
+
+            let playerPos = 50; // Posición inicial del jugador (50% del ancho)
+            let timeAlive = 0;
+            let gameInterval;
+            let burgerInterval;
+            let scoreInterval;
+            let speedIncreaseInterval;
+
+            // Función para mover el jugador
+            function movePlayer(direction) {
+                const step = 5; // El jugador se moverá 5% en cada paso
+                if (direction === 'left') {
+                    playerPos = Math.max(0, playerPos - step);
+                    player.style.transform = `translateX(-50%) scaleX(-1)`; // Voltear horizontalmente
+                } else if (direction === 'right') {
+                    playerPos = Math.min(100, playerPos + step);
+                    player.style.transform = `translateX(-50%) scaleX(1)`; // Volver a la posición normal
+                }
+                player.style.left = `${playerPos}%`;
+            }
+
+            // Evento para detectar clics en la pantalla
+            game.addEventListener("click", (event) => {
+                const clickX = event.clientX;
+                const gameWidth = game.clientWidth;
+
+                if (clickX < gameWidth / 2) {
+                    movePlayer('left');
+                } else {
+                    movePlayer('right');
+                }
+            });
+
+            // Función para crear hamburguesas
+            function createBurger() {
+                const burger = document.createElement("div");
+                burger.classList.add("burger");
+                burger.style.left = `${Math.random() * 100}%`;
+                burger.style.top = `-70px`;
+                game.appendChild(burger);
+            }
+
+            // Función para mover las hamburguesas
+            function moveBurgers() {
+                const burgers = document.querySelectorAll(".burger");
+                burgers.forEach(burger => {
+                    let burgerTop = parseFloat(burger.style.top);
+                    burgerTop += 2; // Velocidad de la hamburguesa
+                    burger.style.top = `${burgerTop}px`;
+
+                    // Verificar colisión con jugador
+                    checkBurgerCollision(burger);
+
+                    // Eliminar hamburguesas fuera de la pantalla
+                    if (burgerTop > window.innerHeight) {
+                        burger.remove();
+                    }
+                });
+            }
+
+            // Función para verificar colisión con hamburguesa
+            function checkBurgerCollision(burger) {
+                const burgerRect = burger.getBoundingClientRect();
+                const playerRect = player.getBoundingClientRect();
+                if (
+                    burgerRect.left < playerRect.right &&
+                    burgerRect.right > playerRect.left &&
+                    burgerRect.bottom > playerRect.top &&
+                    burgerRect.top < playerRect.bottom
+                ) {
+                    showExplosion(playerRect); // Mostrar explosión
+                    endGame();
+                }
+            }
+
+            // Función para mostrar la explosión
+            function showExplosion(playerRect) {
+                explosion.style.left = `${playerRect.left}px`;
+                explosion.style.top = `${playerRect.top}px`;
+                explosion.style.display = 'block';
+
+                // Ocultar la explosión después de 2 segundos
+                setTimeout(() => {
+                    explosion.style.display = 'none';
+                }, 2000);
+            }
+
+            // Función para actualizar el tiempo
+            function updateScore() {
+                timeAlive++;
+                score.textContent = `Tiempo: ${timeAlive}`;
+            }
+
+            // Función para finalizar el juego
+            function endGame() {
+                clearInterval(gameInterval);
+                clearInterval(burgerInterval);
+                clearInterval(scoreInterval);
+                clearInterval(speedIncreaseInterval); // Detener incremento de velocidad
+
+                // Mostrar overlay de juego terminado
+                survivalTimeDisplay.textContent = timeAlive;
+                overlay.style.display = 'flex';
+            }
+
+            // Función para reiniciar el juego
+            function restartGame() {
+                // Recargar la página para reiniciar el juego
+                location.reload();
+            }
+
+            // Función para incrementar la velocidad de las hamburguesas cada 20 segundos
+            function increaseSpeed() {
+                burgerInterval = setInterval(createBurger, 1000); // Velocidad inicial
+                speedIncreaseInterval = setInterval(() => {
+                    clearInterval(burgerInterval); // Limpiar intervalo actual
+                    burgerInterval = setInterval(createBurger, 800); // Nueva velocidad
+                }, 20000); // Incrementar cada 20 segundos
+            }
+
+            // Función para iniciar el juego
+            function startGame() {
+                gameInterval = setInterval(moveBurgers, 20);
+                burgerInterval = setInterval(createBurger, 1000);
+                scoreInterval = setInterval(updateScore, 1000);
+                increaseSpeed(); // Iniciar aumento de velocidad
+            }
+
+            // Iniciar el juego automáticamente
+            startGame();
+        });
+    </script>
+</body>
+</html>
