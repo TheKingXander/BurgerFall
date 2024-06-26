@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página de Inicio</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: url('imagen.gif') no-repeat center center;
+            background-size: cover; /* Ajustar la imagen de fondo */
+        }
+
+        #logo {
+            width: 200px; /* Tamaño inicial del logo */
+            height: auto;
+            opacity: 0; /* Inicialmente invisible */
+            animation: logoAnimation 2s ease-in-out forwards; /* Animación de aparición */
+        }
+
+        @keyframes logoAnimation {
+            0% {
+                opacity: 0;
+                transform: scale(0.5); /* Tamaño inicial pequeño */
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1); /* Tamaño final grande */
+            }
+        }
+    </style>
+</head>
+<body>
+    <img id="logo" src="Logo.png" alt="Logo">
+
+    <script>
+        // Redireccionar a menu.html después de 2 segundos
+        setTimeout(() => {
+            window.location.href = "menu.html";
+        }, 2000);
+    </script>
+</body>
+</html>
